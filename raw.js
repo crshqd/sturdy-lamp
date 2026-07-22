@@ -3,8 +3,8 @@
   const data = await response.text();
   const newTab = window.open("https://gimkit.com/question-image/ddd");
   newTab.onload = function() {
-    document.open();
-    document.write(data);
-    document.close();
+    newWindow.document.open();
+    newWindow.document.write(data);
+    newWindow.document.close();
   }
 })();
