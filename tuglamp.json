@@ -1,0 +1,38 @@
+{
+  "fullnames": [
+    "Education",
+    "Entertainment",
+    "Utilities",
+    "Technology"
+  ],
+  "contents": [
+    [
+      "https://www.wikipedia.org/",
+      "https://www.khanacademy.org/",
+      "https://www.openstax.org/",
+      "https://www.britannica.com/",
+      "https://www.coursera.org/"
+    ],
+    [
+      "https://www.youtube.com/",
+      "https://www.archive.org/",
+      "https://www.twitch.tv/",
+      "https://www.imdb.com/",
+      "https://www.soundcloud.com/"
+    ],
+    [
+      "https://www.google.com/",
+      "https://www.timeanddate.com/",
+      "https://www.wolframalpha.com/",
+      "https://www.speedtest.net/",
+      "https://www.unitconverters.net/"
+    ],
+    [
+      "https://github.com/",
+      "https://stackoverflow.com/",
+      "https://developer.mozilla.org/",
+      "https://www.cloudflare.com/",
+      "https://www.npmjs.com/"
+    ]
+  ]
+}
