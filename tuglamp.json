@@ -3,7 +3,8 @@
     "Education",
     "Entertainment",
     "Utilities",
-    "Technology"
+    "Technology",
+    "BlockedTest"
   ],
   "contents": [
     [
@@ -33,6 +34,10 @@
       "https://developer.mozilla.org/",
       "https://www.cloudflare.com/",
       "https://www.npmjs.com/"
+    ],
+    [
+      "https://6.61.site.je",
+      "https://google.com"
     ]
   ]
 }
