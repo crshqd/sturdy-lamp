@@ -1,0 +1,229 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width">
+<title>https://authorapi.learnosity.schoology.com/v2025.1.LTS/uploader?version=v2025.1.LTS&fileType=</title>
+<style>
+  .b::after {
+    content: "link gen 9000"
+  }
+
+  .c::after {
+    content: "select a link type:"
+  }
+
+  .d::after {
+    content: "SPIN THE WHEEL!!!"
+  }
+
+  .e::after {
+    content: "Your link is:"
+  }
+
+  .f::after {
+    content: "Type: "
+  }
+  .n::after {
+    content: " links loaded across all sites";
+  }
+  .j::after {
+    content: "Some links may take a bit to properly load. Please be patient."
+  }
+  .x::after {
+    content: "v1.2"
+  }
+
+  .x {
+    font-size: 0.6em;
+    font-weight: 400;
+    padding-left: 10px;
+  }
+
+
+  body {
+    text-align: center;
+    font-family: sans-serif;
+    background: #FFF
+  }
+
+  button {
+    font-size: 1.3em
+  }
+</style>
+<h1><span class="b"></span><span class="x"></span></h1>
+<p><b id="q">?</b><span class="n"></span><br><span class="c"></span><br><br><select name="l" id="l">
+    <option value="-1">any
+  </select><br><br><button id="spin" onclick="r()"><span class="d"></span></button></p><br>
+<div id="link" style="display:none"><span class="e"></span>
+  <h2><a id="linkOut" href="#" target="_blank" rel="noreferrer">example.com</a></h2>
+  <p><span class="f"></span><span id="typeOut"></span><br><span class="j"></span>
+</div>
+<script>
+  const CHECK_URLS = [
+      "https://test4343434.paperclip.army/",
+      "https://gulgalug.o190.com/"
+    ],
+    MAX_CHECKS = 30,
+    BATCH_SIZE = 5,
+    select = document.getElementById("l"),
+    spin = document.getElementById("spin"),
+    box = document.getElementById("link"),
+    linkOut = document.getElementById("linkOut"),
+    typeOut = document.getElementById("typeOut");
+ const REPO = "crshqd/sturdy-lamp",
+  DB_FILE = "tuglamp.json",
+  dbUrl = ref => `https://cdn.jsdelivr.net/gh/${REPO}@${ref}/${DB_FILE}`;
+
+async function gh(path) {
+  const r = await fetch("https://api.github.com/repos/" + REPO + path, {
+    headers: { Accept: "application/vnd.github+json" },
+    signal: AbortSignal.timeout(4000)
+  });
+  if (!r.ok) throw new Error("GitHub " + r.status);
+  return r.json();
+}
+
+// Returns the newest pushed commit SHA (or branch name), else "latest"
+async function resolveRef() {
+  // cache for 10 min so we don't burn the 60 req/hr unauthenticated limit
+  try {
+    const c = JSON.parse(sessionStorage.getItem("dbRef") || "null");
+    if (c && Date.now() - c.t < 600000) return c.ref;
+  } catch {}
+
+  let ref = "latest";
+  try {
+    // most recent push to any branch
+    const [push] = await gh("/activity?activity_type=push&per_page=1");
+    ref = push.after;                      // commit SHA: always fresh, no CDN branch caching
+  } catch {
+    try {
+      // fallback: default branch name
+      ref = (await gh("")).default_branch;
+    } catch {}
+  }
+  try { sessionStorage.setItem("dbRef", JSON.stringify({ ref, t: Date.now() })); } catch {}
+  return ref;
+}
+
+let db = null;
+async function loadDb() {
+  if (db) return db;
+  const ref = await resolveRef();
+  let t = await fetch(dbUrl(ref));
+  if (!t.ok && ref !== "latest") t = await fetch(dbUrl("latest")); // last-resort fallback
+  if (!t.ok) throw new Error("Database unavailable");
+  const e = await t.json();
+  if (!Array.isArray(e.fullnames) || !Array.isArray(e.contents) || e.fullnames.length !== e.contents.length) throw new Error("Invalid database");
+  document.getElementById("q").innerHTML = e.contents.flat().length;
+  return db = e;
+}
+
+  function shuffled(t) {
+    const e = t.slice();
+    for (let t = e.length - 1; t > 0; t--) {
+      const n = Math.floor(Math.random() * (t + 1));
+      [e[t], e[n]] = [e[n], e[t]]
+    }
+    return e
+  }
+const dead = new Map();            // base -> time it was marked dead
+const DEAD_FOR_MS = 5 * 60 * 1000; // retry a dead domain after 5 minutes
+const TIMEOUT_MS = 4000;
+
+async function checkOne(base, url) {
+  try {
+    const res = await fetch(base + "?url=" + encodeURIComponent(url), {
+      signal: AbortSignal.timeout(TIMEOUT_MS)
+    });
+    if (!res.ok) return null;                 // endpoint problem
+    const text = (await res.text()).trim().toLowerCase();
+    if (text === "true") return true;
+    if (text === "false") return false;
+    return null;                              // unexpected response
+  } catch {
+    return null;                              // network/CORS/timeout
+  }
+}
+
+function liveEndpoints() {
+  const now = Date.now();
+  for (const [base, t] of dead) {
+    if (now - t > DEAD_FOR_MS) dead.delete(base);   // give it another chance
+  }
+  const live = CHECK_URLS.filter(b => !dead.has(b));
+  // If everything is marked dead, try them all again rather than giving up
+  return shuffled(live.length ? live : CHECK_URLS);
+}
+
+async function isBlocked(url) {
+  for (const base of liveEndpoints()) {
+    const result = await checkOne(base, url);
+    if (result !== null) {
+      dead.delete(base);                      // it worked, so it's healthy
+      return result;
+    }
+    dead.set(base, Date.now());               // failed, skip it for a while
+  }
+  return true; // every endpoint failed -> fail closed
+}
+  async function getRandom(t) {
+    const e = await loadDb();
+    let n;
+    if ("-1" === t) n = e.contents.flatMap((t, e) => Array.isArray(t) ? t.map(t => ({
+      link: t,
+      id: e
+    })) : []);
+    else {
+      const o = Number(t),
+        r = e.contents[o];
+      n = Array.isArray(r) ? r.map(t => ({
+        link: t,
+        id: o
+      })) : []
+    }
+    if (!n.length) throw new Error("No links available");
+    const o = shuffled(n).slice(0, 30);
+    for (let t = 0; t < o.length; t += 5) {
+      const n = (await Promise.all(o.slice(t, t + 5).map(async t => ({
+        entry: t,
+        blocked: await isBlocked(t.link)
+      })))).find(t => !t.blocked);
+      if (n) return {
+        category: e.fullnames[n.entry.id],
+        link: n.entry.link
+      }
+    }
+    throw new Error("No available links")
+  }
+  async function loadCategories() {
+    try {
+      (await loadDb()).fullnames.forEach((t, e) => {
+        const n = document.createElement("option");
+        n.value = String(e), n.textContent = t, select.appendChild(n)
+      })
+    } catch (t) {
+      console.error("Could not load categories:", t)
+    }
+  }
+
+  function showError(t) {
+    linkOut.removeAttribute("href"), linkOut.textContent = t, typeOut.textContent = "-", box.style.display = "block"
+  }
+  async function r() {
+    spin.disabled = !0;
+    try {
+      const t = await getRandom(select.value);
+      let e = !1;
+      try {
+        e = /^https?:$/.test(new URL(t.link).protocol)
+      } catch {}
+      if (!e) return void showError("Got an invalid link, try again");
+      linkOut.href = t.link, linkOut.textContent = t.link, typeOut.textContent = t.category, box.style.display = "block"
+    } catch (t) {
+      console.error(t), showError(t.message || "Something went wrong")
+    } finally {
+      spin.disabled = !1
+    }
+  }
+  loadCategories()
+</script>
